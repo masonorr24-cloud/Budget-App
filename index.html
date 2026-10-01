@@ -1,0 +1,626 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ai:#1b2a4c;          /* indigo ground */
+    --ai-deep:#131d36;
+    --ai-line:rgba(233,237,243,.16);
+    --card:#e9edf3;        /* card face */
+    --ink:#e9edf3;         /* text on the dark background */
+    --ink-dim:rgba(233,237,243,.62);
+    --sumi:#14161a;
+    --shu:#cf4a30;         /* vermilion seal */
+    --matcha:#7fa46e;
+    --kin:#cfa957;
+    --disp:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ai);color:var(--ink);
+       font-family:var(--disp);-webkit-font-smoothing:antialiased;
+       padding:18px 14px 48px;max-width:640px;margin-inline:auto}
+  .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.22em;
+           text-transform:uppercase;color:var(--ink-dim)}
+  h2{font-size:13px;letter-spacing:.16em;text-transform:uppercase;
+     font-family:var(--mono);font-weight:500;color:var(--ink-dim);
+     margin:30px 0 10px;font-weight:500}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  /* ---- header ---- */
+  header{border-bottom:1px solid var(--ai-line);padding-bottom:18px}
+  .dates{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .balance{font-size:52px;line-height:1;font-weight:700;letter-spacing:-.02em;
+           margin:14px 0 2px}
+  .balance small{font-size:22px;font-weight:400;color:var(--ink-dim)}
+  .balance-note{font-size:13px;color:var(--ink-dim)}
+
+  /* ---- signature: the day track ---- */
+  .track{margin-top:18px}
+  .ticks{display:flex;gap:3px;align-items:flex-end;height:26px}
+  .tick{flex:1;background:var(--ai-line);border-radius:1px;height:9px}
+  .tick.past{background:var(--ink-34)}
+  .tick.today{background:var(--shu);height:26px}
+  .track-legend{display:flex;justify-content:space-between;margin-top:7px}
+
+  /* ---- envelopes ---- */
+  .env{background:var(--card);color:var(--sumi);border-radius:3px;
+       padding:12px 13px;margin-bottom:8px}
+  .env-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .env-name{font-weight:700;font-size:16px}
+  .env-left{font-family:var(--mono);font-size:19px;font-weight:600}
+  .env-sub{font-family:var(--mono);font-size:11px;color:var(--sumi-dim);margin-top:3px}
+  .bar{height:5px;background:rgba(20,22,26,.12);border-radius:3px;
+       margin-top:9px;overflow:hidden}
+  .bar span{display:block;height:100%;background:var(--matcha)}
+  .env.over .bar span{background:var(--shu)}
+  .env.over .env-left{color:var(--shu)}
+  .env.done{background:var(--ink-10);color:var(--ink)}
+  .env.done .env-left{color:var(--kin)}
+  .env.done .env-sub{color:var(--ink-dim)}
+  .env.done .bar{background:var(--ink-14)}
+  .env.done .bar span{background:var(--kin)}
+
+  /* ---- form ---- */
+  .card{border:1px solid var(--ai-line);border-radius:3px;padding:14px}
+  label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+        text-transform:uppercase;color:var(--ink-dim);margin-bottom:5px}
+  input,select,textarea{width:100%;background:var(--ai-deep);border:1px solid var(--ai-line);
+        color:var(--ink);font-family:var(--mono);font-size:16px;
+        padding:10px 11px;border-radius:3px;-webkit-appearance:none}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--kin);outline-offset:1px}
+  textarea{font-size:12px;line-height:1.5;resize:vertical}
+  .row{display:flex;gap:9px}
+  .row>div{flex:1}
+  .field{margin-bottom:11px}
+  button{font-family:var(--disp);font-weight:700;font-size:15px;
+         background:var(--shu);color:#fff;border:0;border-radius:3px;
+         padding:12px 16px;width:100%;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--kin);outline-offset:2px}
+  .ghost{background:transparent;color:var(--ink-dim);border:1px solid var(--ai-line);
+         font-weight:500;font-size:13px;padding:10px}
+
+  /* ---- history ---- */
+  .day{font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+       color:var(--ink-dim);margin:16px 0 7px;text-transform:uppercase}
+  .entry{display:flex;align-items:baseline;gap:10px;padding:9px 0;
+         border-bottom:1px solid var(--ai-line)}
+  .entry-desc{flex:1;font-size:15px}
+  .entry-env{font-family:var(--mono);font-size:10px;color:var(--ink-dim);
+             letter-spacing:.1em;text-transform:uppercase}
+  .entry-amt{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
+  .x{background:none;border:0;color:var(--shu);font-size:17px;width:auto;
+     padding:0 6px;cursor:pointer;line-height:1;display:none}
+  body.editing .x{display:inline}
+  body.editing .entry{background:var(--ink-10)}
+  .hrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .hrow{margin:30px 0 10px}
+  .hrow h2{margin:0}
+  .minibtn{width:auto;flex:0 0 auto;padding:7px 12px;font-size:12px;
+     background:transparent;color:var(--ink-dim);border:1px solid var(--ai-line);
+     border-radius:3px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase}
+  body.editing .minibtn{color:var(--shu);border-color:var(--shu)}
+  #undoBar{display:flex;align-items:center;gap:10px;background:var(--ink-10);
+     border-left:2px solid var(--shu);padding:10px 12px;margin-top:18px;font-size:14px}
+  #undoBar span{flex:1}
+  #undoBar button{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13px}
+  .empty{color:var(--ink-dim);font-size:14px;padding:10px 0}
+
+  .flag{border-left:2px solid var(--kin);padding:9px 0 9px 11px;
+        font-size:13px;color:var(--ink-dim);margin-top:12px}
+  .foot{display:flex;gap:9px;margin-top:26px}
+  .foot button{flex:1}
+  .swatch{display:flex;align-items:center;justify-content:space-between;gap:12px;
+          padding:8px 0;border-bottom:1px solid var(--ai-line)}
+  .swatch span{font-size:15px}
+  .swatch input{width:64px;height:34px;padding:2px;background:transparent;
+          border:1px solid var(--ai-line);border-radius:3px}
+  .foot{flex-wrap:wrap}
+  .foot button{flex:1 1 40%}
+  .hidden{display:none}
+  @media (prefers-reduced-motion:no-preference){
+    .env,.entry{transition:opacity .18s ease}
+  }
+</style>
+
+<header>
+  <div class="dates">
+    <span class="eyebrow" id="periodLabel">Period</span>
+    <span class="eyebrow num" id="daysLeft"></span>
+  </div>
+  <div class="balance num"><small>$</small><span id="balance">0.00</span></div>
+  <div class="balance-note" id="balanceNote">on hand</div>
+
+  <div class="track">
+    <div class="ticks" id="ticks"></div>
+    <div class="track-legend">
+      <span class="eyebrow num" id="startLabel"></span>
+      <span class="eyebrow num" id="endLabel"></span>
+    </div>
+  </div>
+</header>
+
+<h2>Envelopes</h2>
+<div id="envelopes"></div>
+<div id="planFlag"></div>
+
+<h2>Add an entry</h2>
+<div class="card">
+  <div class="row">
+    <div class="field"><label for="amt">Amount</label>
+      <input id="amt" type="number" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+    <div class="field"><label for="env">Envelope</label>
+      <select id="env"></select></div>
+  </div>
+  <div class="field"><label for="desc">What was it for</label>
+    <input id="desc" type="text" placeholder="Groceries"></div>
+  <div class="field"><label for="date">Date</label>
+    <input id="date" type="date"></div>
+  <button id="add">Record it</button>
+</div>
+
+<div class="hrow">
+  <h2>History</h2>
+  <button class="minibtn" id="toggleEdit">Edit entries</button>
+</div>
+<div id="history"></div>
+
+<div id="planPanel" class="hidden">
+  <h2>Edit the plan</h2>
+  <div class="card">
+    <div class="field"><label for="income">Money coming in this period</label>
+      <input id="income" type="number" step="0.01" inputmode="decimal"></div>
+    <div class="row">
+      <div class="field"><label for="pStart">Start</label><input id="pStart" type="date"></div>
+      <div class="field"><label for="pEnd">End</label><input id="pEnd" type="date"></div>
+    </div>
+    <div class="field"><label for="cycle">When this period ends, the next one runs</label>
+      <select id="cycle">
+        <option value="same">The same number of days as this one</option>
+        <option value="14">Two weeks</option>
+        <option value="month">One calendar month</option>
+        <option value="ask">Dates I pick each time</option>
+      </select></div>
+    <div id="planRows"></div>
+    <button class="ghost" id="addEnv" style="margin-bottom:9px">Add an envelope</button>
+    <button id="savePlan">Save plan</button>
+  </div>
+</div>
+
+<div id="saveFlag"></div>
+<div id="firstRun" class="hidden flag" style="margin-top:14px">
+  <b>Start here.</b> Put in what you have coming in and how much goes to each envelope, then save the plan.
+  Everything after that is just recording what you spend.
+</div>
+
+<div id="backupPanel" class="hidden">
+  <h2>Back up</h2>
+  <div class="card">
+    <div class="field">
+      <label for="backupText">Your data as text — copy it, or paste an old copy in to restore</label>
+      <textarea id="backupText" rows="7"></textarea>
+    </div>
+    <div class="row">
+      <button id="copyData">Copy my data</button>
+      <button class="ghost" id="restore">Restore from this text</button>
+    </div>
+  </div>
+</div>
+
+<div id="colorPanel" class="hidden">
+  <h2>Colors</h2>
+  <div class="card">
+    <div class="swatch"><span>Cards</span><input type="color" data-c="washi"></div>
+    <div class="swatch"><span>Text</span><input type="color" data-c="text"></div>
+    <div class="swatch"><span>Background</span><input type="color" data-c="ai"></div>
+    <div class="swatch"><span>Buttons and today's mark</span><input type="color" data-c="shu"></div>
+    <div class="swatch"><span>Money set aside</span><input type="color" data-c="kin"></div>
+    <div class="swatch"><span>Money still left</span><input type="color" data-c="matcha"></div>
+    <button class="ghost" id="resetColors" style="margin-top:11px">Back to the original colors</button>
+  </div>
+</div>
+
+<div class="foot">
+  <button class="ghost" id="togglePlan">Edit plan</button>
+  <button class="ghost" id="toggleBackup">Back up</button>
+  <button class="ghost" id="toggleColors">Colors</button>
+  <button class="ghost" id="newPeriod">Start new period</button>
+</div>
+
+<div id="undoBar" class="hidden"><span id="undoText"></span><button id="undoBtn">Undo</button></div>
+
+<script>
+const KEY = 'budget:v1';
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const todayISO = () => iso(new Date());
+const mem = {};
+let saveOK = true;
+// Standalone build: saves to this browser's own storage. No account, no server.
+const store = {
+  async get(k){
+    try{ const v = localStorage.getItem(k); if(typeof v === 'string') return {value:v}; }catch(e){}
+    return mem[k] ? {value:mem[k]} : null;
+  },
+  async set(k,v){
+    mem[k] = v;
+    localStorage.setItem(k, v);
+    return {value:v};
+  }
+};
+
+const SEED = {
+  period:{start:'2026-08-20', end:'2026-09-03', income:812.18},
+  envelopes:[
+    {id:'tithes',    name:'Tithing',        planned:81.21,  kind:'setaside'},
+    {id:'offerings', name:'Fast offerings', planned:18.79,  kind:'setaside'},
+    {id:'savings',   name:'Savings',        planned:512.18, kind:'setaside'},
+    {id:'spending',  name:'Spending',       planned:100.00, kind:'spend'},
+    {id:'food',      name:'Food',           planned:50.00,  kind:'spend'},
+    {id:'buffer',    name:'Buffer',         planned:50.00,  kind:'spend'}
+  ],
+  entries:[
+    {id:'s1', date:'2026-08-20', desc:'Tithing paid',       amount:81.21,  env:'tithes'},
+    {id:'s2', date:'2026-08-20', desc:'Fast offering',      amount:18.79,  env:'offerings'},
+    {id:'s3', date:'2026-08-20', desc:'Moved to savings',   amount:512.18, env:'savings'},
+    {id:'s4', date:'2026-08-21', desc:'Icecream sandwiches',amount:3.71,   env:'food'}
+  ],
+  archive:[]
+};
+
+let S = null;
+let lastDeleted = null;
+
+function showUndo(msg){
+  document.getElementById('undoText').textContent = msg;
+  document.getElementById('undoBar').classList.remove('hidden');
+}
+const money = n => (Math.round(n*100)/100).toFixed(2);
+const uid = () => Math.random().toString(36).slice(2,9);
+const parseD = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); };
+const pretty = s => parseD(s).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+
+async function load(){
+  try{ const r = await store.get(KEY); S = r && r.value ? JSON.parse(r.value) : structuredClone(SEED); }
+  catch(e){ S = structuredClone(SEED); }
+  applyTheme(S.theme);
+  const fresh = false;
+  render();
+  if(fresh){
+    document.getElementById('planPanel').classList.remove('hidden');
+    document.getElementById('firstRun').classList.remove('hidden');
+  }
+}
+async function save(){
+  try{ await store.set(KEY, JSON.stringify(S)); saveOK = true; }
+  catch(e){ saveOK = false; console.warn('Storage unavailable, holding in memory', e); }
+  document.getElementById('backupText').value = JSON.stringify(S);
+  const b = document.getElementById('saveFlag');
+  b.innerHTML = saveOK ? '' :
+    '<div class="flag"><b>This window will not let the page save.</b> Your entries are safe on screen, ' +
+    'but closing it loses them. Open the file in Chrome or Safari instead — or tap <b>Copy my data</b> ' +
+    'below and keep the text somewhere safe.</div>';
+  if(!saveOK) document.getElementById('backupPanel').classList.remove('hidden');
+}
+
+const spentIn = id => S.entries.filter(e=>e.env===id).reduce((a,e)=>a+e.amount,0);
+const totalSpent = () => S.entries.reduce((a,e)=>a+e.amount,0);
+
+function render(){
+  const bal = S.period.income - totalSpent();
+  document.getElementById('balance').textContent = money(bal);
+  document.getElementById('periodLabel').textContent =
+    pretty(S.period.start) + ' — ' + pretty(S.period.end);
+  document.getElementById('startLabel').textContent =
+    parseD(todayISO()).toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+  document.getElementById('endLabel').textContent = '';
+
+  // day track
+  const start = parseD(S.period.start), end = parseD(S.period.end);
+  const span = Math.max(1, Math.round((end-start)/86400000)+1);
+  const now = parseD(todayISO());
+  const idx = Math.round((now-start)/86400000);
+  const left = Math.max(0, span - idx - 1);
+  document.getElementById('daysLeft').textContent =
+    idx < 0 ? 'starts ' + pretty(S.period.start)
+      : idx >= span ? 'period ended'
+      : (left === 0 ? 'last day' : left + ' days left');
+  const ticks = document.getElementById('ticks');
+  ticks.innerHTML = '';
+  for(let i=0;i<span;i++){
+    const t = document.createElement('div');
+    t.className = 'tick' + (i===idx ? ' today' : i<idx ? ' past' : '');
+    ticks.appendChild(t);
+  }
+  if(idx >= span){
+    document.getElementById('saveFlag').innerHTML =
+      '<div class="flag"><b>This period ended ' + pretty(S.period.end) + '.</b> ' +
+      'Tap Start new period when you are ready to roll it over.</div>';
+  }
+  const flex = S.envelopes.filter(e=>e.kind==='spend')
+    .reduce((a,e)=>a+Math.max(0,e.planned-spentIn(e.id)),0);
+  document.getElementById('balanceNote').textContent =
+    '$' + money(flex) + ' of that is still spendable' + (left>0 ? ' — about $' + money(flex/(left+1)) + ' a day' : '');
+
+  // envelopes
+  const wrap = document.getElementById('envelopes');
+  wrap.innerHTML = '';
+  S.envelopes.forEach(e=>{
+    const sp = spentIn(e.id), rem = e.planned - sp;
+    const pct = e.planned>0 ? Math.min(100, sp/e.planned*100) : 0;
+    const div = document.createElement('div');
+    div.className = 'env' + (rem<0 ? ' over':'') + (e.kind==='setaside' ? ' done':'');
+    div.innerHTML =
+      '<div class="env-top"><span class="env-name"></span>' +
+      '<span class="env-left">$' + money(Math.abs(rem)) + (rem<0?' over':'') + '</span></div>' +
+      '<div class="env-sub">' + (e.kind==='setaside' ? 'set aside ' : 'used ') +
+        '$' + money(sp) + ' of $' + money(e.planned) + '</div>' +
+      '<div class="bar"><span style="width:' + pct + '%"></span></div>';
+    div.querySelector('.env-name').textContent = e.name;
+    wrap.appendChild(div);
+  });
+
+  // plan sanity flag
+  const planned = S.envelopes.reduce((a,e)=>a+e.planned,0);
+  const diff = Math.round((S.period.income - planned)*100)/100;
+  document.getElementById('planFlag').innerHTML = diff === 0 ? '' :
+    '<div class="flag">Your plan ' + (diff<0?'is over':'leaves') + ' $' + money(Math.abs(diff)) +
+    ' compared with the $' + money(S.period.income) + ' coming in. Edit the plan to square it up.</div>';
+
+  // envelope picker
+  const sel = document.getElementById('env');
+  const keep = sel.value;
+  sel.innerHTML = '';
+  S.envelopes.forEach(e=>{
+    const o = document.createElement('option');
+    o.value = e.id; o.textContent = e.name; sel.appendChild(o);
+  });
+  sel.value = keep && S.envelopes.some(e=>e.id===keep) ? keep : 'spending';
+
+  // history
+  const h = document.getElementById('history');
+  h.innerHTML = '';
+  if(!S.entries.length){ h.innerHTML = '<div class="empty">Nothing recorded yet. The first entry you add shows up here.</div>'; }
+  const byDay = {};
+  S.entries.forEach(e=>{ (byDay[e.date] = byDay[e.date] || []).push(e); });
+  Object.keys(byDay).sort().reverse().forEach(d=>{
+    const head = document.createElement('div');
+    head.className = 'day';
+    head.textContent = parseD(d).toLocaleDateString(undefined,{weekday:'short',month:'long',day:'numeric'});
+    h.appendChild(head);
+    byDay[d].forEach(e=>{
+      const env = S.envelopes.find(x=>x.id===e.env);
+      const row = document.createElement('div');
+      row.className = 'entry';
+      row.innerHTML = '<span class="entry-desc"></span><span class="entry-env"></span>' +
+        '<span class="entry-amt">$' + money(e.amount) + '</span>' +
+        '<button class="x" aria-label="Delete entry">×</button>';
+      row.querySelector('.entry-desc').textContent = e.desc || '(no note)';
+      row.querySelector('.entry-env').textContent = env ? env.name : e.env;
+      row.querySelector('.x').onclick = async () => {
+        const what = (e.desc || 'this entry') + ' — $' + money(e.amount);
+        if(!confirm('Delete ' + what + '?')) return;
+        lastDeleted = {entry:e, at:S.entries.indexOf(e)};
+        S.entries = S.entries.filter(x=>x.id!==e.id);
+        await save(); render();
+        showUndo('Deleted ' + what + '.');
+      };
+      h.appendChild(row);
+    });
+  });
+
+  renderPlanRows();
+}
+
+function renderPlanRows(){
+  document.getElementById('income').value = S.period.income;
+  document.getElementById('cycle').value = S.period.cycle || 'same';
+  document.getElementById('pStart').value = S.period.start;
+  document.getElementById('pEnd').value = S.period.end;
+  const pr = document.getElementById('planRows');
+  pr.innerHTML = '';
+  S.envelopes.forEach((e,i)=>{
+    const d = document.createElement('div');
+    d.className = 'row';
+    d.innerHTML =
+      '<div class="field" style="flex:1.4"><label>Name</label><input type="text" data-n="'+i+'"></div>' +
+      '<div class="field"><label>Planned</label><input type="number" step="0.01" inputmode="decimal" data-p="'+i+'"></div>' +
+      '<div class="field" style="flex:0 0 40px"><label>&nbsp;</label>' +
+      '<button class="ghost" data-d="'+i+'" style="padding:10px 0">×</button></div>';
+    d.querySelector('[data-n]').value = e.name;
+    d.querySelector('[data-p]').value = e.planned;
+    d.querySelector('[data-d]').onclick = async ()=>{
+      const used = S.entries.filter(x=>x.env===e.id).length;
+      const warn = 'Remove the ' + e.name + ' envelope?' +
+        (used ? '\n\n' + used + ' entr' + (used===1?'y':'ies') + ' will be left without an envelope.' : '');
+      if(!confirm(warn)) return;
+      S.envelopes.splice(i,1); await save(); render();
+    };
+    pr.appendChild(d);
+  });
+}
+
+document.getElementById('add').onclick = async () => {
+  const amt = parseFloat(document.getElementById('amt').value);
+  if(!amt || amt <= 0){ document.getElementById('amt').focus(); return; }
+  S.entries.push({
+    id: uid(),
+    date: document.getElementById('date').value || todayISO(),
+    desc: document.getElementById('desc').value.trim(),
+    amount: Math.round(amt*100)/100,
+    env: document.getElementById('env').value
+  });
+  document.getElementById('amt').value = '';
+  document.getElementById('desc').value = '';
+  lastDeleted = null;
+  document.getElementById('undoBar').classList.add('hidden');
+  await save(); render();
+};
+
+document.getElementById('togglePlan').onclick = () => {
+  const p = document.getElementById('planPanel');
+  p.classList.toggle('hidden');
+  if(!p.classList.contains('hidden')) p.scrollIntoView({behavior:'smooth'});
+};
+
+document.getElementById('addEnv').onclick = async () => {
+  S.envelopes.push({id:uid(), name:'New envelope', planned:0, kind:'spend'});
+  await save(); render();
+};
+
+document.getElementById('savePlan').onclick = async () => {
+  S.period.income = parseFloat(document.getElementById('income').value) || 0;
+  S.period.start  = document.getElementById('pStart').value || S.period.start;
+  S.period.end    = document.getElementById('pEnd').value || S.period.end;
+  S.period.cycle  = document.getElementById('cycle').value;
+  document.querySelectorAll('[data-n]').forEach(inp=>{
+    S.envelopes[+inp.dataset.n].name = inp.value;
+  });
+  document.querySelectorAll('[data-p]').forEach(inp=>{
+    S.envelopes[+inp.dataset.p].planned = parseFloat(inp.value) || 0;
+  });
+  await save(); render();
+  document.getElementById('planPanel').classList.add('hidden');
+  document.getElementById('firstRun').classList.add('hidden');
+};
+
+document.getElementById('newPeriod').onclick = async () => {
+  if(!confirm('Archive this period and start a fresh one? Your envelopes and planned amounts carry over; the entries clear out.')) return;
+  S.archive.push({period:S.period, entries:S.entries});
+  const oldStart = parseD(S.period.start), oldEnd = parseD(S.period.end);
+  const cycle = S.period.cycle || 'same';
+  const ns = new Date(oldEnd.getTime()+86400000);
+  let ne;
+  if(cycle === 'month'){
+    ne = new Date(ns.getFullYear(), ns.getMonth()+1, ns.getDate());
+    ne.setDate(ne.getDate()-1);
+  } else if(cycle === '14'){
+    ne = new Date(ns.getTime()+13*86400000);
+  } else if(cycle === 'ask'){
+    ne = ns;                                  // filled in by hand on the next screen
+  } else {
+    ne = new Date(ns.getTime() + Math.round((oldEnd-oldStart)/86400000)*86400000);
+  }
+  S.period = {start:iso(ns), end:iso(ne), income:S.period.income, cycle:cycle};
+  S.entries = [];
+  await save(); render();
+  document.getElementById('planPanel').classList.remove('hidden');
+  const note = document.getElementById('firstRun');
+  note.innerHTML = cycle === 'ask'
+    ? '<b>Set your dates.</b> Pick the start and end of this new period, check the amounts, then save the plan.'
+    : '<b>New period started.</b> Check the dates and amounts below, then save the plan.';
+  note.classList.remove('hidden');
+  document.getElementById('planPanel').scrollIntoView({behavior:'smooth'});
+};
+
+document.getElementById('toggleBackup').onclick = () => {
+  const p = document.getElementById('backupPanel');
+  p.classList.toggle('hidden');
+  if(!p.classList.contains('hidden')){
+    document.getElementById('backupText').value = JSON.stringify(S, null, 2);
+    p.scrollIntoView({behavior:'smooth'});
+  }
+};
+
+document.getElementById('copyData').onclick = async () => {
+  const ta = document.getElementById('backupText');
+  const btn = document.getElementById('copyData');
+  try{
+    await navigator.clipboard.writeText(ta.value);
+    btn.textContent = 'Copied';
+  }catch(e){
+    ta.focus(); ta.select();
+    btn.textContent = 'Selected — hold and copy';
+  }
+  setTimeout(()=>{ btn.textContent = 'Copy my data'; }, 2500);
+};
+
+document.getElementById('restore').onclick = async () => {
+  try{
+    const parsed = JSON.parse(document.getElementById('backupText').value);
+    if(!parsed.period || !Array.isArray(parsed.envelopes)) throw new Error('shape');
+    S = parsed; await save(); render();
+    document.getElementById('backupPanel').classList.add('hidden');
+  }catch(e){
+    alert('That text is not a readable backup. Paste the whole block, from the first { to the last }.');
+  }
+};
+
+
+const DEFAULT_THEME = {ai:'#1b2a4c', washi:'#e9edf3', text:'#e9edf3', shu:'#cf4a30', kin:'#cfa957', matcha:'#7fa46e'};
+const lum = h => { const [r,g,b] = hexRGB(h); return (0.299*r + 0.587*g + 0.114*b)/255; };
+const hexRGB = h => { h = h.replace('#',''); return [0,2,4].map(i => parseInt(h.slice(i,i+2),16)); };
+const darken = (h,f) => { const [r,g,b] = hexRGB(h);
+  return 'rgb(' + Math.round(r*f) + ',' + Math.round(g*f) + ',' + Math.round(b*f) + ')'; };
+
+function applyTheme(t){
+  const T = Object.assign({}, DEFAULT_THEME, t || {});
+  const [r,g,b] = hexRGB(T.text);
+  const a = v => 'rgba(' + r + ',' + g + ',' + b + ',' + v + ')';
+  const dark = lum(T.washi) > 0.55;          // is the card light enough for dark text?
+  const [cr,cg,cb] = hexRGB(dark ? '#14161a' : T.text);
+  const rs = document.documentElement.style;
+  rs.setProperty('--ai', T.ai);
+  rs.setProperty('--ai-deep', darken(T.ai, .72));
+  rs.setProperty('--card', T.washi);
+  rs.setProperty('--ink', T.text);
+  rs.setProperty('--sumi', dark ? '#14161a' : T.text);
+  rs.setProperty('--sumi-dim', 'rgba(' + cr + ',' + cg + ',' + cb + ',.62)');
+  rs.setProperty('--shu', T.shu);
+  rs.setProperty('--kin', T.kin);
+  rs.setProperty('--matcha', T.matcha);
+  rs.setProperty('--ai-line', a(.16));
+  rs.setProperty('--ink-dim', a(.62));
+  rs.setProperty('--ink-10', a(.10));
+  rs.setProperty('--ink-14', a(.14));
+  rs.setProperty('--ink-34', a(.34));
+  document.querySelectorAll('[data-c]').forEach(i => { i.value = T[i.dataset.c]; });
+  return T;
+}
+
+document.querySelectorAll('[data-c]').forEach(inp => {
+  inp.oninput = async () => {
+    S.theme = Object.assign({}, DEFAULT_THEME, S.theme || {});
+    S.theme[inp.dataset.c] = inp.value;
+    applyTheme(S.theme);
+    await save();
+  };
+});
+
+document.getElementById('resetColors').onclick = async () => {
+  S.theme = Object.assign({}, DEFAULT_THEME);
+  applyTheme(S.theme);
+  await save();
+};
+
+document.getElementById('toggleColors').onclick = () => {
+  const p = document.getElementById('colorPanel');
+  p.classList.toggle('hidden');
+  if(!p.classList.contains('hidden')) p.scrollIntoView({behavior:'smooth'});
+};
+
+document.getElementById('toggleEdit').onclick = () => {
+  const on = document.body.classList.toggle('editing');
+  document.getElementById('toggleEdit').textContent = on ? 'Done' : 'Edit entries';
+};
+
+document.getElementById('undoBtn').onclick = async () => {
+  if(!lastDeleted) return;
+  S.entries.splice(Math.max(0, lastDeleted.at), 0, lastDeleted.entry);
+  lastDeleted = null;
+  document.getElementById('undoBar').classList.add('hidden');
+  await save(); render();
+};
+
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden && S){
+    document.getElementById('date').value = todayISO();
+    render();
+  }
+});
+
+document.getElementById('date').value = todayISO();
+load();
+</script>
